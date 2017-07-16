@@ -6,7 +6,8 @@ class Vector:
     This class gives simple functionalities related to a Vector
     params:
         coordinates: tuple of vector values
-        dimension: Stores the number of dimensions of the vector
+        dimension: Stores the number of dimensions of the vector,
+                   equal to the length of coordinates
 
     Example initialization:
         v = Vector([1, 2, 3])
@@ -23,9 +24,6 @@ class Vector:
     DIMENSION_MORE_THAN_THREE_MSG = "Cross Product can be done on vectors of dimension 3 or less."
 
     def __init__(self, coordinates):
-        """
-        Initialize a vector with an iterable coordinates
-        """
         try:
             if not coordinates:
                 raise ValueError(Vector.EMPTY_COORDINATES_MSG)
@@ -112,7 +110,8 @@ class Vector:
         if in_degrees = True, then angle returned is in degrees.
         """
         try:
-            angle_in_rad = math.acos((self.normalize()).dot(v.normalize()))
+            normal_product = round((self.normalize()).dot(v.normalize()), 5)
+            angle_in_rad = math.acos(normal_product)
 
             if in_degrees:
                 return angle_in_rad * 180 / math.pi
