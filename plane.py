@@ -18,8 +18,8 @@ class Plane(Line):
     k => Constant Term
     
     Example initialization:
-    l = Plane(Vector([2, 3, 4]), 5)
-    This will generate a line of the form, 2x + 3y +4z = 5
+    p = Plane(Vector([2, 3, 4]), 5)
+    This will generate a plane of the form, 2x + 3y +4z = 5
     """
 
     NO_NONZERO_ELTS_FOUND_MSG = 'No nonzero elements found'
