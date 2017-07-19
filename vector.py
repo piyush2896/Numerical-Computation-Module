@@ -1,7 +1,7 @@
 import math
 
 
-class Vector:
+class Vector(object):
     """
     This class gives simple functionalities related to a Vector
     params:
