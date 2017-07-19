@@ -25,8 +25,17 @@ class Plane(Line):
     NO_NONZERO_ELTS_FOUND_MSG = 'No nonzero elements found'
     
     def __init__(self, normal_vector=None, constant_term=None):
-        super(Plane, self).__init__(normal_vector, constant_term)
+        #super(Plane, self).__init__(normal_vector, constant_term)
         self.dimension = 3
+        if not normal_vector:
+            normal_vector = Vector([0]*self.dimension)
+        self.normal_vector = normal_vector
+        
+        if not constant_term:
+            constant_term = 0
+        self.constant_term = constant_term
+        
+        self.set_basepoint()
 
 
 if __name__ == '__main__':

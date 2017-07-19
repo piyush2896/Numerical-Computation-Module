@@ -2,7 +2,7 @@ import math
 from vector import Vector
 
 
-class Line:
+class Line(object):
     """
     This class gives simple functionalities related to a line in 2d
     params:
@@ -172,7 +172,7 @@ class Line:
         """
         Helper method to find that the item is tending to zero or not.
         """
-        return item < tolerance
+        return abs(item) < tolerance
 
     @staticmethod
     def first_nonzero_index(iterable):
