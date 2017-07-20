@@ -6,6 +6,8 @@ from plane import Plane
 class LinearSystem(object):
 
     ALL_PLANES_MUST_BE_IN_SAME_DIM_MSG = 'All planes in the system should live in the same dimension'
+    NO_SOLUTIONS_MSG = 'No solutions'
+    INF_SOLUTIONS_MSG = 'Infinitely many solutions'
 
     def __init__(self, planes):
         try:
