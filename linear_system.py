@@ -16,6 +16,43 @@ class LinearSystem(object):
         except AssertionError:
             raise Exception(self.ALL_PLANES_MUST_BE_IN_SAME_DIM_MSG)
 
+    def compute_triangular_form(self):
+        system = deepcopy(self)
+
+        num_equations = len(system)
+        num_variables = self.dimension
+        j = 0
+        for row in range(num_equations):
+            while j < num_variables:
+                curr_coef = system[row].normal_vector.coordinates[j]
+                if LinearSystem.is_near_zero(curr_coef):
+                    is_swapped = system.swap_with_row_below_for_nonzero_coefficient(row, j)
+                    if not is_swapped:
+                        j += 1
+                        continue
+
+                system.clear_coefficients_below(row, j)
+                j += 1
+                break
+
+        return system
+
+    def swap_with_row_below_for_nonzero_coefficient(self, row_above, coefficient):
+        for i in range(row_above, len(self)):
+            coef = self[i].normal_vector.coordinates[coefficient]
+            if not LinearSystem.is_near_zero(coef):
+                self.swap_rows(row_above, i)
+                return True
+        return False
+
+    def clear_coefficients_below(self, row, coefficient):
+        curr_coef = self[row].normal_vector.coordinates[coefficient]
+        for i in range(row+1, len(self)):
+            row_coef = self[i].normal_vector.coordinates[coefficient]
+            if not LinearSystem.is_near_zero(row_coef):
+                self.add_multiple_times_row_to_row(-row_coef / curr_coef,
+                                                   row, i)
+
     def swap_rows(self, row1, row2):
         self[row1], self[row2] = self[row2], self[row1]
 
