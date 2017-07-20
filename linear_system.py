@@ -16,6 +16,29 @@ class LinearSystem(object):
         except AssertionError:
             raise Exception(self.ALL_PLANES_MUST_BE_IN_SAME_DIM_MSG)
 
+    def swap_rows(self, row1, row2):
+        self[row1], self[row2] = self[row2], self[row1]
+
+    def multiply_coefficient_and_row(self, coefficient, row):
+        n = self.planes[row].normal_vector
+        k = self.planes[row].constant_term
+
+        new_normal_vector = n * coefficient
+        new_constant_term = k * coefficient
+
+        self.planes[row] = Plane(normal_vector=new_normal_vector, constant_term=new_constant_term)
+
+    def add_multiple_times_row_to_row(self, coefficient, row_to_add, row_to_be_added_to):
+        n1 = self[row_to_add].normal_vector
+        n2 = self[row_to_be_added_to].normal_vector
+        k1 = self[row_to_add].constant_term
+        k2 = self[row_to_be_added_to].constant_term
+
+        new_normal_vector = n1 * coefficient + n2
+        new_constant_term = k1 * coefficient + k2
+
+        self[row_to_be_added_to] = Plane(normal_vector=new_normal_vector, constant_term=new_constant_term)
+
     def indices_of_first_nonzero_terms_in_each_row(self):
         num_equations = len(self)
         num_variables = self.dimension
