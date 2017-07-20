@@ -23,24 +23,22 @@ class LinearSystem(object):
 
     def compute_solution(self):
         try:
-            return self.do_gaussian_elimination_and_extract_solution()
+            return self.do_gaussian_elimination_and_parametrize_solution()
         except Exception as e:
-            if (str(e) == self.NO_SOLUTIONS_MSG or
-                str(e) == self.INF_SOLUTIONS_MSG):
+            if (str(e) == self.NO_SOLUTIONS_MSG):
                 return str(e)
             else:
                 raise e
 
-    def do_gaussian_elimination_and_extract_solution(self):
+    def do_gaussian_elimination_and_parametrize_solution(self):
         rref = self.compute_rref()
 
         rref.raise_exception_if_contradictory_equations()
-        rref.raise_exception_if_too_few_pivots()
 
-        num_variables = rref.dimension
-        solution_coordinates = [rref[i].constant_term for i in range(num_variables)]
+        direction_vectors = rref.extract_direction_vectors_for_parametrization()
+        basepoint = rref.extract_basepoint_for_parametrization()
 
-        return Vector(solution_coordinates)
+        return Parametrization(basepoint, direction_vectors)
 
     def raise_exception_if_contradictory_equations(self):
         for p in self.planes:
@@ -53,13 +51,38 @@ class LinearSystem(object):
                 else:
                     raise e
 
-    def raise_exception_if_too_few_pivots(self):
-        pivot_indices = self.indices_of_first_nonzero_terms_in_each_row()
-        num_pivots = sum([1 if index >= 0 else 0 for index in pivot_indices])
+    def extract_direction_vectors_for_parametrization(self):
         num_variables = self.dimension
+        pivot_indices = self.indices_of_first_nonzero_terms_in_each_row()
+        free_variables_indices = set(range(num_variables)) - set(pivot_indices)
 
-        if num_pivots < num_variables:
-            raise Exception(self.INF_SOLUTIONS_MSG)
+        direction_vectors = []
+
+        for free_var in free_variables_indices:
+            vector_coords = [0] * num_variables
+            vector_coords[free_var] = 1
+            for i, p in enumerate(self.planes):
+                pivot_var = pivot_indices[i]
+                if pivot_var < 0:
+                    break
+                vector_coords[pivot_var] = -p.normal_vector.coordinates[free_var]
+            direction_vectors.append(Vector(vector_coords))
+
+        return direction_vectors
+
+    def extract_basepoint_for_parametrization(self):
+        num_variables = self.dimension
+        pivot_indices = self.indices_of_first_nonzero_terms_in_each_row()
+
+        basepoint_coords = [0] * num_variables
+
+        for i, p in enumerate(self.planes):
+            pivot_var = pivot_indices[i]
+            if pivot_var < 0:
+                break
+            basepoint_coords[pivot_var] = p.constant_term
+
+        return Vector(basepoint_coords)
 
     def compute_triangular_form(self):
         system = deepcopy(self)
@@ -201,11 +224,19 @@ class Parametrization(object):
         self.dimension = self.basepoint.dimension
 
         try:
-            for v in direction_vectors: 
-                assert v.dimension = self.dimension
+            for v in direction_vectors:
+                assert v.dimension == self.dimension
         except AssertionError:
             raise Exception(Parametrization.BASEPT_AND_DIR_VECTORS_MUST_BE_IN_SAME_DIM_MSG)
 
+    def __str__(self):
+        temp = ['x_{} * {}'.format(i+2,v) for i, v in enumerate(self.direction_vectors)]
+        ret = '+'.join(temp)
+        if len(temp) == 0:
+            ret = str(self.basepoint)
+        else:
+            ret += "+{}".format(self.basepoint)
+        return "x_1 = " + ret
 
 if __name__ == '__main__':
     p0 = Plane(normal_vector=Vector([1, 1, 1]), constant_term=1)
@@ -364,25 +395,10 @@ if __name__ == '__main__':
     if not s.compute_solution() == LinearSystem.NO_SOLUTIONS_MSG:
         print ("test case 1 failed")
 
-    p1 = Plane(normal_vector=Vector([8.631, 5.112, -1.816]), constant_term=-5.113)
-    p2 = Plane(normal_vector=Vector([4.315, 11.132, -5.27]), constant_term=-6.775)
-    p3 = Plane(normal_vector=Vector([-2.158, 3.01, -1.727]), constant_term=-0.831)
-    s = LinearSystem([p1, p2, p3])
-    if not s.compute_solution() == LinearSystem.INF_SOLUTIONS_MSG:
-        print ("test case 2 failed")
-
-    p1 = Plane(normal_vector=Vector([5.262, 2.739, -9.878]), constant_term=-3.441)
-    p2 = Plane(normal_vector=Vector([5.111, 6.358, 7.638]), constant_term=-2.152)
-    p3 = Plane(normal_vector=Vector([2.016, -9.924, -1.367]), constant_term=-9.278)
-    p4 = Plane(normal_vector=Vector([2.167, -13.543, -18.883]), constant_term=-10.567)
-    s = LinearSystem([p1, p2, p3, p4])
-    sol = Vector([round(x, 3) for x in s.compute_solution().coordinates])
-    if not sol == Vector([-1.177, 0.707, -0.083]):
-        print ("test case 3 failed")
-
 
     print('-'*80)
     print("Examples")
+    print("Unique Solution")
     p1 = Plane(normal_vector=Vector([5.262, 2.739, -9.878]), constant_term=-3.441)
     p2 = Plane(normal_vector=Vector([5.111, 6.358, 7.638]), constant_term=-2.152)
     p3 = Plane(normal_vector=Vector([2.016, -9.924, -1.367]), constant_term=-9.278)
@@ -393,5 +409,18 @@ if __name__ == '__main__':
     r = s.compute_rref()
     print("\nRREF:")
     print(r)
-    sol = r.compute_solution()
+    sol = s.compute_solution()
+    print("\nSolution:", sol)
+
+    print("\n\nInfinitely many solutions")
+    p1 = Plane(normal_vector=Vector([8.631, 5.112, -1.816]), constant_term=-5.113)
+    p2 = Plane(normal_vector=Vector([4.315, 11.132, -5.27]), constant_term=-6.775)
+    p3 = Plane(normal_vector=Vector([-2.158, 3.01, -1.727]), constant_term=-0.831)
+    s = LinearSystem([p1, p2, p3])
+    print("\nSystem:")
+    print(s)
+    r = s.compute_rref()
+    print("\nRREF:")
+    print(r)
+    sol = s.compute_solution()
     print("\nSolution:", sol)
