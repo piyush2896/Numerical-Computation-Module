@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from vector import Vector
 from plane import Plane
 
@@ -48,6 +50,33 @@ class LinearSystem(object):
     def clear_coefficients_below(self, row, coefficient):
         curr_coef = self[row].normal_vector.coordinates[coefficient]
         for i in range(row+1, len(self)):
+            row_coef = self[i].normal_vector.coordinates[coefficient]
+            if not LinearSystem.is_near_zero(row_coef):
+                self.add_multiple_times_row_to_row(-row_coef / curr_coef,
+                                                   row, i)
+
+    def compute_rref(self):
+        tf = self.compute_triangular_form()
+
+        num_equations = len(self)
+        pivot_indices = tf.indices_of_first_nonzero_terms_in_each_row()
+
+        for row in range(num_equations-1, -1, -1):
+            j = pivot_indices[row]
+            if j < 0:
+                continue
+            tf.scale_row_to_make_coefficient_equal_to_one(row, j)
+            tf.clear_coefficients_above(row, j)
+
+        return tf
+
+    def scale_row_to_make_coefficient_equal_to_one(self, row, coefficient):
+        coef = self[row].normal_vector.coordinates[coefficient]
+        self.multiply_coefficient_and_row(1/coef, row)
+
+    def clear_coefficients_above(self, row, coefficient):
+        curr_coef = self[row].normal_vector.coordinates[coefficient]
+        for i in range(row-1, -1, -1):
             row_coef = self[i].normal_vector.coordinates[coefficient]
             if not LinearSystem.is_near_zero(row_coef):
                 self.add_multiple_times_row_to_row(-row_coef / curr_coef,
@@ -183,3 +212,44 @@ if __name__ == '__main__':
             s[2] == Plane(normal_vector=Vector([-1, -1, 1]), constant_term=-3) and
             s[3] == p3):
         print ('test case 9 failed')
+
+
+    print('-'*80)
+    print("Testing for compute_triangular_form function")
+    p1 = Plane(normal_vector=Vector([1, 1, 1]), constant_term=1)
+    p2 = Plane(normal_vector=Vector([0, 1, 1]), constant_term=2)
+    s = LinearSystem([p1,p2])
+    t = s.compute_triangular_form()
+    if not (t[0] == p1 and
+            t[1] == p2):
+        print ('test case 1 failed')
+
+    p1 = Plane(normal_vector=Vector([1, 1, 1]), constant_term=1)
+    p2 = Plane(normal_vector=Vector([1, 1, 1]), constant_term=2)
+    s = LinearSystem([p1,p2])
+    t = s.compute_triangular_form()
+    if not (t[0] == p1 and
+            t[1] == Plane(constant_term=1)):
+        print ('test case 2 failed')
+
+    p1 = Plane(normal_vector=Vector([1, 1, 1]), constant_term=1)
+    p2 = Plane(normal_vector=Vector([0, 1, 0]), constant_term=2)
+    p3 = Plane(normal_vector=Vector([1, 1, -1]), constant_term=3)
+    p4 = Plane(normal_vector=Vector([1, 0, -2]), constant_term=2)
+    s = LinearSystem([p1,p2,p3,p4])
+    t = s.compute_triangular_form()
+    if not (t[0] == p1 and
+            t[1] == p2 and
+            t[2] == Plane(normal_vector=Vector([0, 0, -2]), constant_term=2) and
+            t[3] == Plane()):
+        print ('test case 3 failed')
+
+    p1 = Plane(normal_vector=Vector([0, 1, 1]), constant_term=1)
+    p2 = Plane(normal_vector=Vector([1, -1, 1]), constant_term=2)
+    p3 = Plane(normal_vector=Vector([1, 2, -5]), constant_term=3)
+    s = LinearSystem([p1,p2,p3])
+    t = s.compute_triangular_form()
+    if not (t[0] == Plane(normal_vector=Vector([1, -1, 1]), constant_term=2) and
+            t[1] == Plane(normal_vector=Vector([0, 1, 1]), constant_term=1) and
+            t[2] == Plane(normal_vector=Vector([0, 0, -9]), constant_term=-2)):
+        print ('test case 4 failed')
