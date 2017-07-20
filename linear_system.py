@@ -18,6 +18,47 @@ class LinearSystem(object):
         except AssertionError:
             raise Exception(self.ALL_PLANES_MUST_BE_IN_SAME_DIM_MSG)
 
+
+    def compute_solution(self):
+        try:
+            return self.do_gaussian_elimination_and_extract_solution()
+        except Exception as e:
+            if (str(e) == self.NO_SOLUTIONS_MSG or
+                str(e) == self.INF_SOLUTIONS_MSG):
+                return str(e)
+            else:
+                raise e
+
+    def do_gaussian_elimination_and_extract_solution(self):
+        rref = self.compute_rref()
+
+        rref.raise_exception_if_contradictory_equations()
+        rref.raise_exception_if_too_few_pivots()
+
+        num_variables = rref.dimension
+        solution_coordinates = [rref[i].constant_term for i in range(num_variables)]
+
+        return Vector(solution_coordinates)
+
+    def raise_exception_if_contradictory_equations(self):
+        for p in self.planes:
+            try:
+                p.first_nonzero_index(p.normal_vector.coordinates)
+            except Exception as e:
+                if str(e) == Plane.NO_NONZERO_ELTS_FOUND_MSG:
+                    if not LinearSystem.is_near_zero(p.constant_term):
+                        raise Exception(self.NO_SOLUTIONS_MSG)
+                else:
+                    raise e
+
+    def raise_exception_if_too_few_pivots(self):
+        pivot_indices = self.indices_of_first_nonzero_terms_in_each_row()
+        num_pivots = sum([1 if index >= 0 else 0 for index in pivot_indices])
+        num_variables = self.dimension
+
+        if num_pivots < num_variables:
+            raise Exception(self.INF_SOLUTIONS_MSG)
+
     def compute_triangular_form(self):
         system = deepcopy(self)
 
