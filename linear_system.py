@@ -362,3 +362,19 @@ if __name__ == '__main__':
     sol = Vector([round(x, 3) for x in s.compute_solution().coordinates])
     if not sol == Vector([-1.177, 0.707, -0.083]):
         print ("test case 3 failed")
+
+
+    print('-'*80)
+    print("Examples")
+    p1 = Plane(normal_vector=Vector([5.262, 2.739, -9.878]), constant_term=-3.441)
+    p2 = Plane(normal_vector=Vector([5.111, 6.358, 7.638]), constant_term=-2.152)
+    p3 = Plane(normal_vector=Vector([2.016, -9.924, -1.367]), constant_term=-9.278)
+    p4 = Plane(normal_vector=Vector([2.167, -13.543, -18.883]), constant_term=-10.567)
+    s = LinearSystem([p1, p2, p3, p4])
+    print("\nSystem:")
+    print(s)
+    r = s.compute_rref()
+    print("\nRREF:")
+    print(r)
+    sol = r.compute_solution()
+    print("\nSolution:", sol)
