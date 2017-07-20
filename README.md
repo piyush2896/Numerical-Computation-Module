@@ -4,4 +4,5 @@ This repository contains code wrote along side Math Module of [Machine Learning 
 ## Usage
 Run vector.py to see the usage of Vector class.<br/>
 Run line.py to see the usage of Line class.<br/>
-Run plane.py to see the usage of Plane class.
+Run plane.py to see the usage of Plane class.<br/>
+Run linear_system.py to see the usage of LinearSystem class.
