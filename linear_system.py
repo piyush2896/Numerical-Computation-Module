@@ -190,6 +190,23 @@ class LinearSystem(object):
         return abs(val) < eps
 
 
+class Parametrization(object):
+    BASEPT_AND_DIR_VECTORS_MUST_BE_IN_SAME_DIM_MSG = (
+        'The basepoint and direction vectors should all live in the same dimension')
+
+    def __init__(self, basepoint, direction_vectors):
+
+        self.basepoint = basepoint
+        self.direction_vectors = direction_vectors
+        self.dimension = self.basepoint.dimension
+
+        try:
+            for v in direction_vectors: 
+                assert v.dimension = self.dimension
+        except AssertionError:
+            raise Exception(Parametrization.BASEPT_AND_DIR_VECTORS_MUST_BE_IN_SAME_DIM_MSG)
+
+
 if __name__ == '__main__':
     p0 = Plane(normal_vector=Vector([1, 1, 1]), constant_term=1)
     p1 = Plane(normal_vector=Vector([0, 1, 0]), constant_term=2)
